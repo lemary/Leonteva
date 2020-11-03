@@ -27,16 +27,18 @@ int partition(std::vector<int> &mas, int l, int r){
     return l+fs;
 }
 
-int kth(std::vector<int> &mas, int l, int r, int k) {
-    if (l == r) {
-        return mas[l];
+int kth(std::vector<int> &mas, int k) {
+    int l = 0, r = mas.size()-1;
+    while (l != r) {
+        int pivotId = partition(mas, l, r);
+        if(pivotId - l > k){
+            r = pivotId - 1;
+        }else{
+            l = pivotId;
+            k -= pivotId - 1;
+        }
     }
-    int pivotId = partition(mas, l, r);
-    if(pivotId - l > k){
-        return kth(mas, l, pivotId-1, k);
-    }else{
-        return kth(mas, pivotId, r, k - (pivotId - l));
-    }
+    return mas[l];
 }
 int main() {
     std::ios::sync_with_stdio(false);
@@ -47,5 +49,5 @@ int main() {
     for(int i = 0; i < n; i++) {
         cin >> A[i];
     }
-    cout << kth(A, 0, n-1, k);
+    cout << kth(A, k);
 }
