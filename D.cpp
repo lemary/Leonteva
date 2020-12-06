@@ -6,7 +6,7 @@ using std::cin;
 using std::cout;
 
 int main() {
-    std::deque<int> p;
+    std::deque<int> p;// p,l?? Информативно)
     std::queue<int> l;
     int n;
     cin >> n;
