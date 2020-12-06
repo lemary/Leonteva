@@ -22,6 +22,7 @@ bool isEmpty(Stack* st) {
     return (st->size == 0);
 }
 
+
 void push(Stack* st, int Val) {
     Elem* e = new Elem();
     e->val = Val;
