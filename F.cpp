@@ -37,7 +37,7 @@ long long msort(vector<int>& mas) { //MergeSort
         return 0;
     }
     long long ans = 0;
-    std::vector<int> B;
+    std::vector<int> B;//На каждой итерации создавать такие массивы очень дорого. Было бы гораздо лучше создать их один раз и переиспользовать
     std::vector<int> C;
     for (int i = 0; i < n / 2; ++i) {
         B.push_back(mas[i]);
