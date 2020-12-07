@@ -84,7 +84,7 @@ int main() {
         int c;
         cin >> c; //getMax, eraseMax, insert
         if(heap.size < k || c < getMax(&heap)){
-            if(heap.size == k) eraseMax(&heap);
+            if(heap.size == k) eraseMax(&heap);// Можно было просто заранее заполнить кучу, тогда не было бы каждый раз лишней проверки
             insert(&heap, c);
             //cout << "after insertion: ";
         }
