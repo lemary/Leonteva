@@ -6,7 +6,7 @@ using std::cout;
 
 int partition(std::vector<int> &mas, int l, int r){
     int id = rand() % (r - l + 1) + l;
-    std::vector<int> buf(r-l+1);
+    std::vector<int> buf(r-l+1);// Разбиение можно и нужно делать без дополнительного массива
     int fs = 0;
     int ls = r-l;
     for(int i = l; i <= r; ++i){
