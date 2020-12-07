@@ -8,7 +8,7 @@ int getByte(long long number, int n) {
 }
  
 void countingSort(long long *data, int size, int n) {
-    int counters[256] = {};
+    int counters[256] = {};// Создавать каждый раз массив не самая лучшая идея, но в данном случае не критично, учитывая сколько стоит его очистить
 
     for(int i = 0; i < size; i++) {
         counters[getByte(data[i], n)]++;
