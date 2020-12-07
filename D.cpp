@@ -87,14 +87,18 @@ void decreaseKey(Heap* heap, int v, int dt){
 int main() {
     std::ios::sync_with_stdio(false);
     cin.tie(0);
+    
     int q;
     cin >> q;
+    
     std::string s;
     std::vector<Node*> nodes(q, nullptr);
     Heap heap = Heap();
     init(&heap, 100000);
+    
     for(int i = 0; i < q; ++i){
         cin>>s;
+        
         if(s=="insert"){
             int x;
             cin >> x;
@@ -103,8 +107,11 @@ int main() {
         }else{
             nodes[i] = nullptr;
         }
+        
         if(s=="getMin") cout << getMin(&heap) << "\n";
+        
         if(s=="extractMin") eraseMin(&heap);
+        
         if(s=="decreaseKey") {
             int delta, ind;
             cin >> ind >> delta;
