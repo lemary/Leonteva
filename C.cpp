@@ -5,40 +5,32 @@ using std::cin;
 using std::cout;
 
 int partition(std::vector<int> &mas, int l, int r){
-    int id = rand() % (r - l + 1) + l;
-    std::vector<int> buf(r-l+1);// Разбиение можно и нужно делать без дополнительного массива
-    int fs = 0;
-    int ls = r-l;
-    for(int i = l; i <= r; ++i){
-        if(i != id){
-            if(mas[i] < mas[id]){
-                buf[fs] = mas[i];
-                fs++;
-            }else{
-                buf[ls] = mas[i];
-                ls--;
-            }
+    int id = l;
+    id += rand() % (r - l + 1);
+    std::swap(mas[r], mas[id]);
+    int p = l;
+    for(int i = l; i <= r; i++){
+        if(i == r){
+            std::swap(mas[r], mas[p]);
+            return p;
+        }
+        if(mas[i] < mas[r]){
+            std::swap(mas[i],mas[p]);
+            p++;
         }
     }
-    buf[fs] = mas[id];
-    for(int i = l; i <= r; ++i){
-        mas[i] = buf[i-l];
-    }
-    return l+fs;
 }
 
-int kth(std::vector<int> &mas, int k) {
-    int l = 0, r = mas.size()-1;
-    while (l != r) {
-        int pivotId = partition(mas, l, r);
-        if(pivotId - l > k){
-            r = pivotId - 1;
-        }else{
-            l = pivotId;
-            k -= pivotId - 1;
-        }
+int kth(std::vector<int> &mas, int l, int r, int k) {
+    if (l == r) {
+        return mas[l];
     }
-    return mas[l];
+    int pivotId = partition(mas, l, r);
+    if(pivotId - l > k){
+        return kth(mas, l, pivotId-1, k);
+    }else{
+        return kth(mas, pivotId, r, k - (pivotId - l));
+    }
 }
 int main() {
     std::ios::sync_with_stdio(false);
@@ -49,5 +41,5 @@ int main() {
     for(int i = 0; i < n; i++) {
         cin >> A[i];
     }
-    cout << kth(A, k);
+    cout << kth(A, 0, n-1, k);
 }
