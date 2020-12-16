@@ -6,7 +6,8 @@ private:
     char* value;
     size_t len;
     size_t buffer;
-    static constexpr double COEF = 2;
+    static constexpr double COEF = 2;// constexpr??
+    
     void swap(String&);
     void reallocate();
 public:
@@ -16,20 +17,25 @@ public:
     String(const char*);
     String(const String&);
     String& operator=(String);
+    
     bool operator==(const String&) const;
     char& operator[](size_t);
     const char& operator[](size_t) const;
     String& operator+=(const String&);
+    
     size_t length() const;
+    
     void push_back(char);
     void pop_back();
     char& front();
     char& back();
     const char& front() const;
     const char& back() const;
+    
     size_t find(const String&) const;
     size_t rfind(const String&) const;
     String substr(size_t, size_t) const;
+    
     bool empty() const;
     void clear();
     ~String();
@@ -61,7 +67,7 @@ String::String(char c) : String(1, c) {
 
 String::String(const char* value2) {
     len = 0;
-    while (value2[len] != '\0') {
+    while (value2[len] != '\0') {// Для этого есть специальная функция в стандартных библиотеках strlen
         ++len;
     }
     buffer = COEF*len + 1;
@@ -70,7 +76,7 @@ String::String(const char* value2) {
 }
 
 String::String(const String& s) : String(s.len) { //конструктор копирования
-    memcpy(value, s.value, s.len);
+    memcpy(value, s.value, s.len);// Два заполнения памяти, эххх
 }
 
 String& String::operator=(String s) { //copy and swap
@@ -100,7 +106,8 @@ const char& String::operator[](size_t ind) const {
 
 String& String::operator+=(const String& s) {
     size_t size = s.len;
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {// ?? Почему бы не расширить память сразу на нужную величину, если места не хватает? Плюс memcpy работает
+        // в разы быстрее, нужно поменять
         push_back(s.value[i]);
     }
     return *this;
@@ -108,7 +115,8 @@ String& String::operator+=(const String& s) {
 
 String operator+(const String s1, const String s2) {
     String copy = s1;
-    return copy += s2;
+    return copy += s2;// Лучше написать copy+=2; return copy, тогда компилятор не будет делать лишнего копирования, а переместит сразу copy
+    // на место наначения
 }
 
 std::ostream& operator<<(std::ostream& out, const String& s) {
@@ -122,7 +130,7 @@ std::istream& operator>>(std::istream& in, String& s) {
     s = String();
     char c;
     while (in.get(c)) {
-        if(c == ' ' || c == '\n') {
+        if(c == ' ' || c == '\n') {// \t, \r ещё стоит учитывать, а в целом есть спец функция isspace(c)
             break;
         }
         s += c;
@@ -178,7 +186,7 @@ size_t String::find(const String& s) const {
     return ind;
 }
 
-size_t String::rfind(const String& s) const {
+size_t String::rfind(const String& s) const {// Можно оптимизировать проходом с другой стороны. Для нормальной работы с size_t сдвинь счётчик на 1 вверх (i>=1)
     size_t ind = len;
     for (size_t i = 0; i <= len - s.len; i++) {
         bool ok = true;
@@ -208,7 +216,7 @@ bool String::empty() const {
 }
 
 void String::clear() {
-    *this = String();
+    *this = String();//Здесь утечка памяти, так как старый экземпляр не будет удалён. Поправь
 }
 
 String::~String() {
