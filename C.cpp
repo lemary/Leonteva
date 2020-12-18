@@ -32,6 +32,8 @@ int kth(std::vector<int> &mas, int l, int r, int k) {
         return kth(mas, pivotId, r, k - (pivotId - l));
     }
 }
+
+
 int main() {
     std::ios::sync_with_stdio(false);
     cin.tie(0);
