@@ -4,6 +4,7 @@
 
 using std::cin;
 using std::cout;
+
 // В комментариях стоило бы написать какое именно это дерево
 class Node {
 public:
