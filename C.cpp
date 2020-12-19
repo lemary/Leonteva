@@ -4,7 +4,7 @@
 
 using std::cin;
 using std::cout;
-
+// В комментариях стоило бы написать какое именно это дерево
 class Node {
 public:
     Node(int _value){
@@ -101,6 +101,7 @@ Node* Node::add(Node* node, int val) {
 Node* Node::del(Node* node, int val) { 
     std::pair<Node*, Node*> parts = splitVal(node, val);
     std::pair<Node*, Node*> parts2 = splitVal(parts.first, val-1);
+    // У тебя здесь память течёт, так как не происходит удаление элемента, а просто забывается ссылка, поправь
     return merge(parts2.first, parts.second);
 }
 
