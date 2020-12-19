@@ -19,7 +19,7 @@ private:
     long long sum;
     Node* left;
     Node* right;
-    static std::pair<Node*, Node*> split(Node*, int);
+    static std::pair<Node*, Node*> split(Node*, int);// И всё же, зачем статик, если этот функционал по хорошему должен быть в Tree? Или это...
     static Node* merge(Node*, Node*);
     static Node* splay(Node*, int);
     static Node* rotateLeft(Node*);
