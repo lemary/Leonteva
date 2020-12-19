@@ -21,7 +21,7 @@ void del(std::vector<std::set<long long>>& MN, std::map<long long, std::set<int>
 }
 
 void clearing(std::vector<std::set<long long>>& MN, std::map<long long, std::set<int>>& EL, int s) {
-    for (long long i : MN[s]) {
+    for (long long i : MN[s]) { 
         EL[i].erase(s);
     }
     MN[s].clear();
