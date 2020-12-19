@@ -7,17 +7,18 @@ using std::cout;
 class Node {
 public:
     Node(int _value){
-        value = _value;
+        value = _value;// Корректнее писать this->value, если у тебя происходит конфликт имён. А ещё лучше делать ():value(value)...
         height = 1;
         left = nullptr;
         right = nullptr;
     }
     int getValue();
-    static Node* insert(Node*, int);
+    static Node* insert(Node*, int);// Не очень понял зачем static, если можно было вызываться от текущего объекта. Но ладно
     static bool find(Node*, int);
     static Node* next(Node*, int);
     static Node* prev(Node*, int);
     static Node* del(Node*, int);
+    
 private:
     int value;
     int height;
@@ -121,11 +122,14 @@ Node* Node::del(Node* node, int val) { // удаляет вершину val из
     }
     if (val == node->value) {
         if (node->right == nullptr)
+            // Здесь утечка памяти, так как ты теряешь ссылку на вершину, взамен которой возвращаешь её левого сына. Переделай
             return node->left;
         Node* min = next(node->right, val);
         Node* newNode = new Node(min->value);
         newNode->left = node->left;
-        newNode->right = del(node->right, min->value);
+        newNode->right = del(node->right, min->value);// Не очень эффективный алгоритм, так как периодически тебе придётся спускаться
+        // и удалять вершины одну за другой по цепочке, пока не найдёшь листик без правого ребёнка. Долго, лучше бы через next получать ссылку и на родителя
+        // И сразу менять вершины местами
         delete node;
         return rotate(newNode);
     }
