@@ -87,6 +87,7 @@ int main(){
     for (int i = 0; i < n; ++i){
         cin >> arr[i];
     }
+ 
     Segment tree = Segment(arr, n);
     cin >> q;
     for(int i = 0; i < q; i++) {
