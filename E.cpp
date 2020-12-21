@@ -22,6 +22,7 @@ public:
         delete r;
     }
  
+ 
     long long getSum(int leftQ, int rightQ) {
         if (segL == leftQ && segR == rightQ) {
             return sum;
