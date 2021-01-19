@@ -9,7 +9,7 @@ private:
 	std::vector<int> data;
 	int sign;
 	// Обращение к элементу
-	int operator[](const unsigned int&) const;
+	int operator[](const unsigned int&) const;// Size_t тогда уж на вход подавай
 
 	void add(const std::vector<int>&);
 	void subtract(const std::vector<int>&); //вычитаем
@@ -41,15 +41,15 @@ public:
 	BigInteger& operator %=(const BigInteger&);
 
 	BigInteger& operator ++(); //Префиксный инкремент
-	const BigInteger  operator ++(int);
+	const BigInteger  operator ++(int);// А зачем const? Просто возвращай копию, хотя по факту временное значение нельзя изменять
 	BigInteger& operator --();
 	const BigInteger  operator --(int);
 
-	const BigInteger operator -() const; //взятие противоположного значения
-	const BigInteger operator +() const;
+	const BigInteger operator -() const; //взятие противоположного значения // аналогично
+	const BigInteger operator +() const;//?
 
 	// ---Вспомогательные функции---
-	const std::vector<int>& GetData() const;
+	const std::vector<int>& GetData() const;// Почему вспомогательные функции public? Перенеси в private
 	int GetSign() const;
 	unsigned int length() const;
 
@@ -60,10 +60,11 @@ public:
 
 	const std::string toString() const;
 	int ToInt() const;
-    double ToDouble() const;
+    	double ToDouble() const;// А в чём разница с toInt? И такие функции с маленькой буквы пишутся
 };
 
-const BigInteger abs(const BigInteger &a) { //ну вот надо нам это
+const BigInteger abs(const BigInteger &a) { //ну вот надо нам это // Надо значит надо, но функции, которые не требуют внутренних данных текущего объекта удобнее обозначать
+	// static, тогда их можно вызывать у самого класса, не создавая объекта
 	return a.GetAbs();
 }
 
@@ -182,7 +183,7 @@ BigInteger& BigInteger::operator +=(const BigInteger &b) {
 		subtract(b.data);
 	}
 	else { // Если this по модулю меньше b.
-		std::vector<int> old = GetData();
+		std::vector<int> old = GetData();// Копировать при += нельзя, иначе смысл пропадает. Следует сделать без копирования
 		data = b.data;
 		sign *= -1;
 		subtract(old);
@@ -191,7 +192,7 @@ BigInteger& BigInteger::operator +=(const BigInteger &b) {
 }
 
 BigInteger& BigInteger::operator -=(const BigInteger &b) {
-	*this += -b;
+	*this += -b;// Аналогично, -b создаёт копию b что плохо
 	return (*this);
 }
 
@@ -307,7 +308,7 @@ void BigInteger::MakeDataFromString(std::string s) {
 	}
 
 	this->sign = 1;
-	this->data.resize(s.length());
+	this->data.resize(s.length());// А зачем 3 раза писать один и тот же код? Поправь
 	for (unsigned int i = 0; i < s.length(); i++)
 		this->data[i] = s[i] - '0';
 	this->ReverseData();
@@ -426,7 +427,7 @@ const std::string BigInteger::toString() const {
 	return res;
 }
 
-int BigInteger::ToInt() const {
+int BigInteger::ToInt() const {// В целох для таких вещей существуют операторы каста, которые можно сделать explicity, но ладно
 	int res = 0;
 	for (unsigned int i = 0; i < length(); i++)
 		res = res * 10 + (*this)[length() - i - 1];
@@ -468,7 +469,7 @@ public:
 	Rational& operator /= (const Rational&);
 
     explicit operator double() const;
-	const Rational operator -() const;
+	const Rational operator -() const;// Аналогично не зачем const
 
 	const std::string toString() const;
 	const std::string asDecimal(size_t) const;
