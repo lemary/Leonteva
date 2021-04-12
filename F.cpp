@@ -3,12 +3,12 @@
 using std::cin;
 using std::cout;
 
-int main() {
+int main() { // вся функциональность в main
     
     int size, size2;
 
     cin >> size;
-    int mas[size + 1];
+    int mas[size + 1]; // Массивы неконстантного размера, а также большого константного размера необходимо выделять в динамической памяти.
     for (int i = 1; i < size + 1; ++i) {
         cin >> mas[i];
     }
