@@ -5,7 +5,7 @@
 using std::cin;
 using std::cout;
 
-int64_t krasava(size_t n, size_t m) {
+int64_t krasava(size_t n, size_t m) { // имена функций должны быть осмысленными
     std::ios::sync_with_stdio(false);
     cin.tie(0);
 
@@ -17,9 +17,9 @@ int64_t krasava(size_t n, size_t m) {
     }
 
     for (size_t a = 1; a < n; a++) {
-        for (size_t b = 0; b < 1 << m; b++) {
+        for (size_t b = 0; b < 1 << m; b++) { // используются однобуквенные имена переменных
             for (size_t c = 0; c < 1 << m; c++) {
-                if ((((b & c) & ((c & b) >> 1)) == 0) && (((~b & ~c) & ((~c & ~b) >> 1)) % (1<<(m - 1)) == 0)) {  //jyj 
+                if ((((b & c) & ((c & b) >> 1)) == 0) && (((~b & ~c) & ((~c & ~b) >> 1)) % (1<<(m - 1)) == 0)) {  //jyj // очень длинное условие, которое вложно разобрать
                     mas[a][c] = mas[a][c] + mas[a - 1][b];
                 }
             }
