@@ -1,14 +1,12 @@
 #include <iostream>
-//#include <vector>
 using std::cin;
 using std::cout;
 
-int main() { // вся функциональность в main
-    
+int main() {
     int size, size2;
 
     cin >> size;
-    int mas[size + 1]; // Массивы неконстантного размера, а также большого константного размера необходимо выделять в динамической памяти.
+    int mas[size + 1];
     for (int i = 1; i < size + 1; ++i) {
         cin >> mas[i];
     }
@@ -20,11 +18,8 @@ int main() { // вся функциональность в main
     }
 
     int ans[size + 1][size2 + 1];
-
-    // for (std::vector<int>& v : mas) { нежизнеспособно
-    //     for (int i : v) {
-    //         i = 0;
-    //     }
+    // for (int i : ans) {
+    //     i = 0;
     // }
 
     for (int i = 0; i < size + 1; ++i) {
