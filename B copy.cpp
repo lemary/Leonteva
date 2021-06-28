@@ -75,6 +75,8 @@ void HashTable::swap(long long key_1, long long key_2) {
     cout << std::abs((*element_key1).second - (*element_key2).second) << '\n';
 }
 
+
+
 int main() {
     HashTable hashTable;
     long long numeral;
