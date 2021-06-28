@@ -36,7 +36,7 @@ void HashTable::toChange(std::pair<std::string, std::string> &value) {
     for (auto i = array[hash].begin(); i != array[hash].end(); ++i) {
         if ((*i).first == value.first) {
             (*i).second = value.second;
-            indicator_change = true;
+            indicator_change = true;// А почему бы сразу не делать break?
         }
         if (indicator_change) {
             break;
