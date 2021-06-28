@@ -40,4 +40,5 @@ int main() {
         if (sum == weight * high) cout << "Yes";
         else cout << "No";
     }
+    
 }
