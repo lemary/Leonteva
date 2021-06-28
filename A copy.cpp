@@ -7,7 +7,7 @@ public:
     HashTable() {
         std::pair<std::string, long long>
         key_value = std::make_pair("bf",3);
-        array[3392].push_back(key_value);
+        array[3392].push_back(key_value);// А зачем ложить в некую ячейку bf 3??
     }
     void toChange(std::pair<std::string, long long>&);
 private:
