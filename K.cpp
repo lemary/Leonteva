@@ -31,7 +31,7 @@ int main() {
 
     long long maska;
     maska = ( 1 << n);
-    long long dp[maska][m];
+    long long dp[maska][m];// Учитывая, что каждый раз массив сравнивался лишь с предыдущим, то можно было хранить не m массивов, а только 2
 
     for (auto l = 0; l < maska; l++)
         for (auto k  = 0; k < m; k++) {
