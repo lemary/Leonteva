@@ -41,7 +41,7 @@ void DFS::DoDFS(long long node, long long par) {
             ch = ch + 1;
             if (par != -1) {
                 if (tin[node] <= ret[node_ed[node][k]]) node_s.insert(node);
-            } /////////////////
+            } ////////////////
             else if (ch >= 2) node_s.insert(node);
             ret[node] = std::min(ret[node_ed[node][k]], ret[node]);
         }
