@@ -12,6 +12,7 @@ int main() {
     long long array_1[size_1];
     long long array_2[size_2];
     long long mini_array[std::min(size_2, size_1) + 1];
+    
     for (long long k = 0; k < std::min(size_2, size_1) + 1; k++) 
         mini_array[k]--;
     for (long long k = 0; k < size_1; k++) 
@@ -22,7 +23,8 @@ int main() {
     for (long long i = 0; i < size_1 + 1; i++)
         for (long long j = 0; j < size_2 + 1; j++)
             dp[i][j] = 0;
-
+    
+    
     for (int i = 1; i - 1 < size_1; i++) {
         long long ind = 0;
         long long top = 0;
