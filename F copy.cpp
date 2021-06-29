@@ -47,7 +47,6 @@ int main() {
     mask = (1 << n) - 1;
 
     cout << min_node + 1 << " ";
-
     for (auto i = 0; i < n-1; i++) {
         int prev;
         prev = dp[min_node][mask].second;
