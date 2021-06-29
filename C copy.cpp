@@ -14,6 +14,7 @@ struct DFS {
     void DoDFS(long long numb);
 };
 
+
 DFS::DFS(long long n) {
     for (auto k = 0; k < n; k++) {
         node_c.push_back("WHITE");
