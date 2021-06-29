@@ -12,7 +12,7 @@ int main() {
     for (auto k = 1; k - 1 < number; k++)
         cin >> elements[k];
 
-    long long dp[number + 1][bag + 1];
+    long long dp[number + 1][bag + 1];// Для простого рюкзака можно было и одномерным массивом воспользоваться
     for (auto j = 0; j - 1 < number; j++)
         for (auto k = 0; k - 1 < bag; k++)
             dp[j][k] = 0;
