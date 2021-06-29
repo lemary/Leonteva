@@ -88,4 +88,5 @@ int main() {
         cout << s << '\n';
         cin >> n;
     }
+    
 }
