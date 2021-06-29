@@ -17,7 +17,7 @@ int main() {
         cin >> mas2[i];
     }
 
-    int ans[size + 1][size2 + 1];
+    int ans[size + 1][size2 + 1];// Отсюда и ниже следовало бы выделить в отдельную функцию
     // for (int i : ans) {
     //     i = 0;
     // }
