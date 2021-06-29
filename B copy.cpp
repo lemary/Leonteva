@@ -5,7 +5,7 @@ using namespace std;
 
 struct DFS {
     std::vector<std::vector<long long>> node_ed;
-    std::vector<std::string> node_c;
+    std::vector<std::string> node_c;// Для этого можно было использовать байты с номерами. Или enum
     std::vector<long long> time_in, time_out;
     long long time;
 
