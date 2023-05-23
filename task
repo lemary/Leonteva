@@ -1,0 +1,85 @@
+#include <algorithm>
+#include <iostream>
+#include <stack>
+#include <vector>
+
+class Solver {
+  int n_;
+  std::vector<std::vector<int>> graph_;
+  std::vector<std::vector<int>> transposeGraph_;
+  std::vector<bool> visited_;
+  std::vector<int> component_;
+  std::vector<int> order_;
+
+ public:
+  Solver(int n)
+      : n_(n), graph_(n), transposeGraph_(n), visited_(n), component_(n) {}
+
+  void AddEdge(int from, int to) {
+    graph_[from].push_back(to);
+    transposeGraph_[to].push_back(from);
+  }
+
+  void Solve() {
+    for (int i = 0; i < n_; i++) {
+      if (!visited_[i]) {
+        DFS(i, graph_, order_);
+      }
+    }
+
+    std::fill(visited_.begin(), visited_.end(), false);
+    int current_component = 0;
+
+    for (int i = n_ - 1; i >= 0; i--) {
+      int vertex = order_[i];
+      if (!visited_[vertex]) {
+        DFS(vertex, transposeGraph_, current_component);
+        current_component++;
+      }
+    }
+
+    std::cout << current_component << std::endl;
+
+    for (int i = 0; i < n_; i++) {
+      std::cout << component_[i] + 1 << " ";
+    }
+
+    std::cout << std::endl;
+  }
+
+ private:
+  void DFS(int vertex, const std::vector<std::vector<int>>& g,
+           std::vector<int>& order) {
+    visited_[vertex] = true;
+    for (int next : g[vertex]) {
+      if (!visited_[next]) {
+        DFS(next, g, order);
+      }
+    }
+    order.push_back(vertex);
+  }
+
+  void DFS(int vertex, const std::vector<std::vector<int>>& g,
+           int current_component) {
+    visited_[vertex] = true;
+    component_[vertex] = current_component;
+    for (int next : g[vertex]) {
+      if (!visited_[next]) {
+        DFS(next, g, current_component);
+      }
+    }
+  }
+};
+
+int main() {
+  int n, m;
+  std::cin >> n >> m;
+  Solver solver(n);
+  for (int i = 0; i < m; i++) {
+    int from, to;
+    std::cin >> from >> to;
+    solver.AddEdge(from - 1, to - 1);
+  }
+  solver.Solve();
+  return 0;
+}
