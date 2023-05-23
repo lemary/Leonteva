@@ -1,0 +1,99 @@
+#include <algorithm>
+#include <iostream>
+#include <vector>
+
+class Graph {
+  std::vector<std::vector<size_t>> adj_;
+
+ public:
+  Graph(size_t n) : adj_(n + 1) {
+    for (size_t i = 0; i < n; ++i) {
+      adj_[0].push_back(i + 1);
+    }
+  }
+
+  void Initialize(const std::vector<std::pair<size_t, size_t>>& edges) {
+    for (const auto& edge : edges) {
+      adj_[edge.first].push_back(edge.second);
+    }
+  }
+
+  std::vector<size_t> DFS() const {
+    std::vector<uint8_t> color(adj_.size());
+    return DFSFromNode(0, &color);
+  }
+
+ private:
+  std::vector<size_t> DFSFromNode(size_t node,
+                                  std::vector<uint8_t>* color) const {
+    (*color)[node] = 1;
+    for (auto child : adj_[node]) {
+      if ((*color)[child] == 2) {
+        continue;
+      }
+      if ((*color)[child] == 1) {
+        std::vector<size_t> ans;
+        ans.push_back(child);
+        ans.push_back(node);
+        return ans;
+      }
+      auto ans = DFSFromNode(child, color);
+      if (!ans.empty()) {
+        if (ans.front() != ans.back()) {
+          ans.push_back(node);
+        }
+        return ans;
+      }
+    }
+    (*color)[node] = 2;
+    return {};
+  }
+};
+
+class Solver {
+  Graph graph_;
+
+ public:
+  Solver(size_t n) : graph_(n) {}
+
+  void Solve(const std::vector<std::pair<size_t, size_t>>& edges) {
+    graph_.Initialize(edges);
+    auto cycle = graph_.DFS();
+    std::reverse(cycle.begin(), cycle.end());
+    Print(cycle);
+  }
+
+ private:
+  void Print(const std::vector<size_t>& cycle) {
+    if (cycle.empty()) {
+      No();
+      return;
+    }
+    Yes();
+    for (size_t i = 0; i + 1 < cycle.size(); ++i) {
+      std::cout << cycle[i] << " ";
+    }
+    std::cout << std::endl;
+  }
+
+  void No() { std::cout << "NO" << std::endl; }
+
+  void Yes() { std::cout << "YES" << std::endl; }
+};
+
+std::vector<std::pair<size_t, size_t>> InputVectorOfPairs(size_t n) {
+  std::vector<std::pair<size_t, size_t>> ans(n);
+  for (auto& elem : ans) {
+    std::cin >> elem.first >> elem.second;
+  }
+  return ans;
+}
+
+int main() {
+  size_t n, m;
+  std::cin >> n >> m;
+  auto edges = InputVectorOfPairs(m);
+  Solver solver(n);
+  solver.Solve(edges);
+  return 0;
+}
