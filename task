@@ -1,0 +1,116 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <set>
+#include <map>
+#include <tuple>
+ 
+using namespace std;
+ 
+ 
+class Graph {
+    size_t colors[2];
+    std::vector<int8_t> color;
+    vector<vector<int32_t>> adj;
+public:
+    Graph(size_t n) : adj(n), color(n, -1) {};
+ 
+    void Add(size_t first, size_t second, int8_t firstColor) {
+    	adj[first].push_back(second);
+        adj[second].push_back(first);
+        color[first] = firstColor;
+        color[second] = 1 - firstColor;
+    }
+
+    int64_t MBM() {
+        vector<int32_t> mt(adj.size(), -1);
+        vector<uint8_t> used;
+        for (size_t i = 0; i < adj.size(); ++i) {
+            if (color[i] != 0) {
+                continue;
+            }
+            used = std::vector<uint8_t>(adj.size());
+            Kuhn(i, used, mt);
+        }
+        int64_t ans = 0;
+        for (size_t i = 0; i < adj.size(); ++i) {
+            if (mt[i] != -1) {
+                ++ans;
+            }
+        }
+        return ans;
+    }
+private:
+    bool Kuhn(size_t node, std::vector<uint8_t> &used, std::vector<int32_t> &mt) {
+        if (used[node]) {
+            return false;
+        }
+        used[node] = true;
+        for (auto to : adj[node]) {
+            if (Check(node, to, used, mt)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    bool Check(size_t node, size_t to, std::vector<uint8_t> &used, std::vector<int32_t> &mt) {
+        if (mt[to] == -1 || Kuhn(mt[to], used, mt)) {
+            mt[to] = node;
+            return true;
+        }
+        return false;
+    }
+};
+ 
+class Solver {
+    size_t n, m, cnt;
+    std::vector<std::vector<char>> data;
+    Graph graph;
+public:
+    Solver(size_t n, size_t m) : n(n), m(m), data(n + 1, std::vector<char>(m + 1)), graph(n * m), cnt(0) {
+        Initialize();
+    }
+
+    int64_t Solve(int64_t a, int64_t b) {
+        if (2 * b <= a) {
+		    return b * cnt;
+	    }
+        CreateGraph();
+        int64_t res = graph.MBM(); 
+        return res * a + (cnt - 2 * res) * b; 
+    }
+private:
+    void CreateGraph() {
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < m; ++j) {
+                if (data[i][j] != '*') {
+                    continue;
+                }
+                if (data[i][j + 1] == '*') {
+                    graph.Add(i * m + j, i * m + j + 1, (i + j) % 2);
+                }
+                if (data[i + 1][j] == '*') {
+                    graph.Add(i * m + j, (i + 1) * m + j, (i + j) % 2);
+                }
+            }
+        }
+    }
+    void Initialize() {
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < m; ++j) {
+                std::cin >> data[i][j];
+                if (data[i][j] == '*') {
+                    ++cnt;
+                }
+            }
+        }
+    }
+};
+
+int main() {
+    size_t n, m;
+    int64_t a, b;
+    std::cin >> n >> m >> a >> b;
+    std::cout << Solver(n, m).Solve(a, b) << std::endl;
+    return 0;
+}
