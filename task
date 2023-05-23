@@ -1,0 +1,30 @@
+#include <iostream>
+#include <vector>
+
+std::vector<std::vector<int64_t>> GetDP(size_t n) {
+  std::vector<std::vector<int64_t>> dp(n + 1, std::vector<int64_t>(n + 1, 0));
+  dp[0][0] = 1;
+  for (size_t pow = 1; pow < n + 1; ++pow) {
+    for (size_t mx = 0; mx < pow + 1; ++mx) {
+      for (size_t k = 0; 2 * k <= mx; ++k) {
+        dp[pow][mx] += dp[pow - mx][k];
+      }
+    }
+  }
+  return dp;
+}
+
+int64_t Summ(const std::vector<int64_t>& arr) {
+  int64_t res = 0;
+  for (auto elem : arr) {
+    res += elem;
+  }
+  return res;
+}
+
+int main() {
+  size_t n;
+  std::cin >> n;
+  auto dp = GetDP(n + 1);
+  std::cout << Summ(dp[n]);
+}
