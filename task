@@ -1,0 +1,59 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+
+const int64_t kMod = 1000 * 1000 * 1000 + 7;
+
+class Solver {
+  std::vector<uint32_t> arr_;
+  std::vector<size_t> prev_;
+  std::vector<int64_t> dp_;
+
+ public:
+  Solver(size_t sz) : arr_(sz + 1) {
+    InputArr();
+    ExtendPrev();
+  }
+
+  int64_t Solve() {
+    dp_.emplace_back(1);
+    for (size_t i = 1; i < arr_.size(); ++i) {
+      dp_.emplace_back(Next());
+    }
+    return Mod(dp_.back() - 1);
+  }
+
+ private:
+  void InputArr() {
+    for (size_t i = 1; i < arr_.size(); ++i) {
+      std::cin >> arr_[i];
+    }
+  }
+
+  void ExtendPrev() {
+    std::unordered_map<uint32_t, size_t> prev_poses;
+    for (size_t i = 0; i < arr_.size(); ++i) {
+      prev_.emplace_back(prev_poses[arr_[i]]);
+      prev_poses[arr_[i]] = i;
+    }
+  }
+
+  int64_t Next() {
+    int64_t ans = dp_.back() * 2;
+    size_t prev_pos = prev_[dp_.size()];
+    if (prev_pos != 0) {
+      ans -= dp_[prev_pos - 1];
+    }
+    return Mod(ans);
+  }
+
+  int64_t Mod(int64_t num) { return (num % kMod + kMod) % kMod; }
+};
+
+int main() {
+  size_t n;
+  std::cin >> n;
+  Solver solver(n);
+  std::cout << solver.Solve() << std::endl;
+  return 0;
+}
