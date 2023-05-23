@@ -1,0 +1,112 @@
+#include <algorithm>
+#include <iostream>
+#include <limits>
+#include <vector>
+
+const int64_t kInf = std::numeric_limits<int64_t>::max();
+
+class Solver {
+  size_t n;
+  std::vector<std::vector<int64_t>> data;
+  std::vector<int64_t> u, v, other, pair;
+
+ public:
+  Solver(size_t n)
+      : n(n),
+        data(n + 1, std::vector<int64_t>(n + 1)),
+        u(n + 1),
+        v(n + 1),
+        other(n + 1),
+        pair(n + 1) {
+    for (size_t i = 1; i <= n; ++i) {
+      for (size_t j = 1; j <= n; ++j) {
+        std::cin >> data[i][j];
+      }
+    }
+  }
+
+  void Solve() {
+    Calculate();
+    Print();
+  }
+
+ private:
+  size_t Kuhn(size_t curSec, std::vector<uint8_t> &used,
+              std::vector<int64_t> &minv) {
+    size_t newSec = FindNewSec(curSec, used, minv);
+    Update(minv[newSec], used, minv);
+    return pair[newSec] == 0 ? newSec : Kuhn(newSec, used, minv);
+  }
+
+  size_t FindNewSec(size_t curSec, std::vector<uint8_t> &used,
+                    std::vector<int64_t> &minv) {
+    used[curSec] = 1;
+    for (size_t j = 1; j <= n; ++j) {
+      if (used[j]) {
+        continue;
+      }
+      int64_t potential = data[pair[curSec]][j] - u[pair[curSec]] + v[j];
+      if (minv[j] > potential) {
+        other[j] = curSec;
+        minv[j] = potential;
+      }
+    }
+    return FindMin(used, minv);
+  }
+
+  size_t FindMin(const std::vector<uint8_t> &used,
+                 const std::vector<int64_t> &minv) {
+    size_t newSec = n + 1;
+    for (size_t j = 1; j <= n; ++j) {
+      if (used[j]) {
+        continue;
+      }
+      if (newSec == n + 1 || minv[newSec] > minv[j]) {
+        newSec = j;
+      }
+    }
+    return newSec;
+  }
+
+  void Update(int64_t mn, const std::vector<uint8_t> &used,
+              std::vector<int64_t> &minv) {
+    for (size_t j = 0; j <= n; ++j) {
+      if (used[j]) {
+        auto pr = pair[j];
+        u[pr] += mn;
+        v[j] += mn;
+      } else {
+        minv[j] -= mn;
+      }
+    }
+  }
+
+  void Calculate() {
+    for (size_t i = 0; i < n; ++i) {
+      std::vector<int64_t> minv(n + 5, kInf);
+      std::vector<uint8_t> used(n + 5, 0);
+      pair[0] = i + 1;
+      size_t curSec = Kuhn(0, used, minv);
+      do {
+        size_t ns = other[curSec];
+        pair[curSec] = pair[ns];
+        curSec = ns;
+      } while (curSec != 0);
+    }
+  }
+
+  void Print() {
+    std::cout << *v.begin() << std::endl;
+    for (size_t i = 1; i <= n; ++i) {
+      std::cout << pair[i] << " ";
+      std::cout << i << std::endl;
+    }
+  }
+};
+
+int main() {
+  size_t n;
+  std::cin >> n;
+  Solver(n).Solve();
+  return 0;
+}
