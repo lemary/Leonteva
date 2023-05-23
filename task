@@ -1,0 +1,107 @@
+#include <iostream>
+#include <stack>
+#include <string>
+#include <vector>
+using namespace std;
+
+struct DFS {
+  std::vector<std::string> node_c;
+  std::vector<std::vector<long long>> node_ed;
+  std::vector<long long> ans;
+
+  DFS(long long n);
+  void Check(long long numb);
+  void Fix();
+  void WrpDoDFS();
+  void DoDFS(long long numb);
+};
+
+DFS::DFS(long long n) {
+  for (auto k = 0; k < n; k++) {
+    node_ed.push_back(std::vector<long long>());
+    node_c.push_back("WHITE");
+  }
+}
+
+void DFS::Check(long long numb) {
+  node_c[numb] = "GREY";
+  for (auto k = 0Lu; k < node_ed[numb].size();
+       k++) {  ///////////////////// +++++++++++++++++++
+    if (node_c[node_ed[numb][k]] == "GREY") {
+      throw 1;
+    }
+    if (node_c[node_ed[numb][k]] == "WHITE") {
+      Check(node_ed[numb][k]);
+    }
+  }
+  node_c[numb] = "BLACK";
+}
+
+void DFS::Fix() {
+  for (auto k = 0Lu; k < node_c.size(); k++) {
+    node_c[k] = "WHITE";
+  }
+}
+
+void DFS::DoDFS(long long numb) {
+  node_c[numb] = "GREY";
+  for (auto k = 0Lu; k < node_ed[numb].size();
+       k++) {  ///////////// ++++++++++++++++++++++++++++
+    if (node_c[node_ed[numb][k]] == "GREY") {
+      throw 1;
+    }
+    if (node_c[node_ed[numb][k]] == "WHITE") {
+      DoDFS(node_ed[numb][k]);
+    }
+  }
+  node_c[numb] = "BLACK";
+  ans.push_back(numb);
+}
+
+void DFS::WrpDoDFS() {
+  for (auto k = 0Lu; k < node_ed.size(); k++) {
+    if (node_c[k] == "WHITE") {
+      DoDFS(k);
+    }
+  }
+}
+
+////////////////////////
+
+int main() {
+  long long v, r;
+  int x, y;
+  bool flag = true;
+  cin >> v >> r;
+  DFS graph(v);
+
+  for (auto k = 0; k < r; k++) {
+    cin >> x >> y;
+    x = x - 1;
+    y = y - 1;
+    graph.node_ed[x].push_back(y);
+  }
+
+  try {
+    for (auto k = 0Lu; k < graph.node_c.size(); k++) {
+      if (graph.node_c[k] == "WHITE") {
+        graph.Check(k);
+      }
+    }
+  } catch (...) {
+    cout << -1;
+    flag = false;
+  }
+
+  if (flag) {
+    try {
+      graph.Fix();
+      graph.WrpDoDFS();
+    } catch (...) {
+      cout << -1;
+    }
+    for (int k = graph.ans.size() - 1; k > -1; --k) {
+      cout << graph.ans[k] + 1 << ' ';
+    }
+  }
+}
