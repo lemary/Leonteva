@@ -1,0 +1,102 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <limits>
+
+struct Person {
+	std::string name;
+	int dist;
+	
+	bool operator<(const Person &other) const {
+		return dist < other.dist;
+	}
+};
+
+
+class Solver {
+public:
+	std::vector<Person> boys;
+	std::vector<Person> girls;
+	std::vector<std::vector<int>> f, g;
+	std::vector<std::vector<std::pair<int, int>>> pre;
+
+	Solver(const std::vector<Person>& boys, const std::vector<Person>& girls): 
+	boys(boys), girls(girls), f(boys.size(), std::vector<int>(girls.size(), std::numeric_limits<int>::max() / 2)),
+	g(boys.size(), std::vector<int>(girls.size())), pre(boys.size(), std::vector<std::pair<int, int>>(girls.size())) {
+		std::sort(this->boys.begin() + 1, this->boys.end());
+		std::sort(this->girls.begin() + 1, this->girls.end());
+	}
+
+	void solve() {
+		f[0][0] = 0;
+		for (int i = 1; i < int(boys.size()); i++) {
+			for (int j = 0; j < int(girls.size()); j++) {
+				for (int B = 1; B <= 4; ++B) {
+					for (int G = 0; G + B <= 4; ++G) {
+						if (i < B || j < G) {
+							continue;
+						}
+						int w = std::max(
+							std::max_element(boys.begin() + i - B + 1, boys.begin() + i + 1)->dist,
+							G == 0 ? 0 : std::max_element(girls.begin() + j - G + 1, girls.begin() + j + 1)->dist);
+						if(f[i][j] > f[i-B][j-G] + w) {
+							f[i][j] = f[i-B][j-G] + w;
+							g[i][j] = g[i-B][j-G] + 1;
+							pre[i][j] = std::make_pair(i-B, j-G);
+						}
+					
+					}
+				}
+			}
+		}
+		std::cout << f[boys.size() - 1][girls.size() - 1] << std::endl;
+		std::cout << g[boys.size() - 1][girls.size() - 1] << std::endl;
+		dfs(boys.size() - 1, girls.size() - 1);
+	}
+private:
+	void output(std::vector<Person>::const_iterator start, std::vector<Person>::const_iterator end, int &count) {
+		for(auto it = start; it != end; ++it) {
+			--count;
+			std::cout << it->name;
+			if (count == 0) {
+				std:: cout << "." << std::endl;
+			} else if (count == 1) {
+				std::cout << " and ";
+			} else{
+				std::cout << ", ";
+			}
+		}
+	}
+
+	void dfs(int x, int y) {
+		if(x == 0 && y == 0) {
+			return;
+		}
+		dfs(pre[x][y].first, pre[x][y].second);
+		std::cout << "Taxi "<< g[x][y] << ": ";
+		int count = x + y - pre[x][y].first - pre[x][y].second;
+		output(boys.cbegin() + pre[x][y].first + 1, boys.cbegin() + x + 1, count);
+		output(girls.cbegin() + pre[x][y].second + 1, girls.cbegin() + y + 1, count);
+	}
+};
+
+std::vector<Person> readPersons(int count) {
+	std::vector<Person> ans(count + 1);
+	for (int i = 1; i <= count; ++i) {
+		std::cin >> ans[i].name;
+		std::cin >> ans[i].dist;
+	}
+	return ans;
+}
+
+int main() {
+	int n, m;
+	std::cin >> n;
+	auto boys = readPersons(n); 
+	std::cin >> m;
+	auto girls = readPersons(m);
+	Solver solver(boys, girls);
+	solver.solve();
+	return 0;
+}
