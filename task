@@ -1,0 +1,106 @@
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <cstring>
+#include <cmath>
+#include <limits>
+
+class Solver {
+private:
+    int n, m;
+    std::vector<int> houses;
+    std::vector<std::vector<int>> dp;
+    std::vector<std::vector<int>> distance;
+    std::vector<std::vector<int>> choice;
+
+    int computeCost(int start, int end) {
+        if (distance[start][end] != -1) {
+            return distance[start][end];
+        }
+
+        int midValue = houses[(start + end) / 2];
+        int cost = 0;
+        for (int i = start; i <= end; ++i) {
+            cost += std::abs(houses[i] - midValue);
+        }
+        distance[start][end] = cost;
+        return cost;
+    }
+
+public:
+    Solver(int n, int m, const std::vector<int>& houses) 
+    : n(n), m(m), houses(houses), dp(n + 1, std::vector<int>(m + 1, std::numeric_limits<int>::max() / 2)), 
+    distance(n + 1, std::vector<int>(n + 1, -1)), choice(n+1, std::vector<int>(m + 1, -1)) {
+        this->houses.insert(this->houses.begin(), 0); // 1-indexed
+        std::sort(this->houses.begin() + 1, this->houses.end());
+    }
+
+    void solve() {
+        for (int i = 0; i <= m; ++i) {
+            dp[i][i] = 0;
+        }
+
+        for (int j = 1; j <= m; ++j) {
+            for (int i = j + 1; i <= n; ++i) {
+                for (int k = j - 1; k < i; k++) {
+                    int potential = dp[k][j - 1] + computeCost(k + 1, i);
+                    if (dp[i][j] > potential) {
+                        dp[i][j] = potential;
+                        choice[i][j] = k;
+                    }
+                }
+            }
+        }
+    }
+
+    int getAns() {
+        return dp[n][m];
+    }
+
+    std::vector<int> getCoordinates() {
+        std::vector<int> coords;
+        int housesLeft = n;
+        int basesLeft = m;
+        while (housesLeft > 0 && basesLeft > 0) {
+            int startHouse = choice[housesLeft][basesLeft] + 1;
+            int endHouse = housesLeft;
+            int medianHouse = (startHouse + endHouse) / 2;
+            coords.push_back(houses[medianHouse]);
+            housesLeft = choice[housesLeft][basesLeft];
+            --basesLeft;
+        }
+        std::reverse(coords.begin(), coords.end());
+        return coords;
+    }
+};
+
+std::vector<int> readArray(int n) {
+    std::vector<int> ans;
+    ans.reserve(n);
+    int cur;
+    for (int i = 0; i < n; ++i) {
+        std::cin >> cur;
+        ans.push_back(cur);
+    }
+    return ans;
+}
+
+void printAnswer(Solver& solver) {
+    std::cout << solver.getAns() << std::endl;
+    for (int coord : solver.getCoordinates()) {
+        std::cout << coord << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    int m, n;
+    std::cin >> n >> m;
+    auto houses = readArray(n);
+
+    Solver solver(n, m, houses);
+    solver.solve();
+
+    printAnswer(solver);
+    return 0;
+}
