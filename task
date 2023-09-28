@@ -1,0 +1,86 @@
+#include <iostream>
+#include <vector>
+
+class Solver {
+private:
+    const std::vector<int>& input;
+    std::vector<size_t> subsequenceLength[2];
+    std::vector<size_t> nextElement[2];
+
+public:
+    Solver(const std::vector<int>& input) : input(input) {
+        subsequenceLength[0].resize(input.size(), 1);
+        subsequenceLength[1].resize(input.size(), 1);
+        nextElement[0].resize(input.size(), 0);
+        nextElement[1].resize(input.size(), 0);
+    }
+
+    std::vector<int> solve() {
+        computeSubsequences();
+        return constructResult();
+    }
+
+private:
+    void computeSubsequences() {
+        for (int i = input.size() - 1; i >= 0; --i) {
+            for (size_t dir = 0; dir <= 1; dir++) {
+                size_t opposite = 1 - dir;
+                for (size_t j = i + 1; j < input.size(); j++) {
+                    if ((dir == 0 && input[i] > input[j]) || (dir == 1 && input[i] < input[j])) {
+                        if (subsequenceLength[dir][i] <= subsequenceLength[opposite][j]) {
+                            subsequenceLength[dir][i] = 1 + subsequenceLength[opposite][j];
+                            nextElement[dir][i] = j;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::vector<int> constructResult() {
+        std::vector<int> result;
+        result.push_back(input[0]);
+
+        size_t dir = (subsequenceLength[0][0] > subsequenceLength[1][0]) ? 1 : 0;
+        size_t i = nextElement[1 - dir][i];
+        
+        while(i != 0) {
+            result.push_back(input[i]);
+            i = nextElement[dir][i];
+            dir = 1 - dir;
+        }
+        return result;
+    }
+};
+
+
+std::vector<int> readArray(int n) {
+    std::vector<int> ans;
+    ans.reserve(n);
+    int cur;
+    for (int i = 0; i < n; ++i) {
+        std::cin >> cur;
+        ans.push_back(cur);
+    }
+    return ans;
+}
+
+
+void printSolution(const std::vector<int>& res) {
+    std::cout << res.size() << std::endl;
+    for (int r : res) {
+        std::cout << r << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    int n;
+    std::cin >> n;
+    std::vector<int> gangs = readArray(n);
+
+    Solver solver(gangs);
+    printSolution(solver.solve());
+
+    return 0;
+}
