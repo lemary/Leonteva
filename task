@@ -1,0 +1,73 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+class Solver {
+private:
+    const std::vector<int>& sequence;
+    std::vector<int> prev;
+    std::vector<int> tails;
+    std::vector<int> tailIndices;
+
+public:
+    Solver(const std::vector<int>& seq) : sequence(seq), prev(seq.size(), -1) {}
+
+    void solve() {
+        for (size_t i = 0; i < sequence.size(); ++i) {
+            auto it = std::upper_bound(tails.begin(), tails.end(), sequence[i], std::greater<int>());
+            int idx = it - tails.begin();
+            
+            if (it == tails.end()) {
+                tails.push_back(sequence[i]);
+                tailIndices.push_back(i);
+            } else {
+                *it = sequence[i];
+                tailIndices[idx] = i;
+            }
+
+            prev[i] = idx > 0 ? tailIndices[idx - 1] : -1;
+        }
+    }
+
+    std::vector<int> getSolutionIndices() {
+        std::vector<int> indices;
+        int idx = tailIndices.back();
+        while (idx != -1) {
+            indices.push_back(idx);
+            idx = prev[idx];
+        }
+        std::reverse(indices.begin(), indices.end());
+        return indices;
+    }
+};
+
+std::vector<int> readArray(int n) {
+    std::vector<int> ans;
+    ans.reserve(n);
+    int cur;
+    for (int i = 0; i < n; ++i) {
+        std::cin >> cur;
+        ans.push_back(cur);
+    }
+    return ans;
+}
+
+void printSolution(const std::vector<int>& indices) {
+    std::cout << indices.size() << std::endl;
+    for (int idx : indices) {
+        std::cout << idx + 1 << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    int n;
+    std::cin >> n;
+    auto arr = readArray(n);
+
+    Solver solver(arr);
+    solver.solve();
+
+    printSolution(solver.getSolutionIndices());
+    return 0;
+}
