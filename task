@@ -1,0 +1,75 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+class Solver {
+private:
+    std::string s1, s2;
+    std::vector<std::vector<int>> dp;
+
+public:
+    Solver(const std::string &s1, const std::string &s2) : s1(s1), s2(s2) {
+        dp.resize(s1.size() + 1, std::vector<int>(s2.size() + 1, 0));
+    }
+
+    void solve() {
+        for (size_t i = 1; i <= s1.size(); ++i) {
+            for (size_t j = 1; j <= s2.size(); ++j) {
+                if (s1[i - 1] != s2[j - 1]) {
+                    dp[i][j] = std::max(dp[i - 1][j], dp[i][j - 1]);
+                } else {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                }
+            }
+        }
+    }
+
+    std::vector<std::pair<int, int>> reconstructLCSIndices() {
+        std::vector<std::pair<int, int>> indices;
+        int i = s1.size(), j = s2.size();
+        while (i > 0 && j > 0) {
+            if (s1[i - 1] == s2[j - 1]) {
+                indices.push_back({i - 1, j - 1});
+                --i;
+                --j;
+            } else if (dp[i - 1][j] > dp[i][j - 1]) {
+                --i;
+            } else {
+                --j;
+            }
+        }
+        std::reverse(indices.begin(), indices.end());
+        return indices;
+    }
+};
+
+std::pair<std::string, std::string> readInput() {
+    std::string s1, s2;
+    std::cin >> s1 >> s2;
+    return {s1, s2};
+}
+
+void printOutput(const std::vector<std::pair<int, int>> &indices) {
+    std::cout << indices.size() << std::endl;
+    for (auto idx: indices) {
+        std::cout << idx.first + 1 << " ";
+    }
+    std::cout << std::endl;
+    for (auto idx: indices) {
+        std::cout << idx.second + 1 << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    auto inp = readInput();
+    Solver solver(inp.first, inp.second);
+
+    solver.solve();
+    auto indices = solver.reconstructLCSIndices();
+
+    printOutput(indices);
+
+    return 0;
+}
