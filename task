@@ -1,0 +1,120 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <stack>
+#include <set>
+#include <unordered_map>
+using namespace std;
+
+enum Colour {
+  WHITE,
+  GREY
+};
+
+class Graph {
+public:
+  std::set<std::pair<long long, long long>> bridge;
+  std::vector<Colour> nodeColour;
+  std::vector<std::vector<long long>> nodeEdges;
+  std::vector<std::pair<long long, long long>> edges;
+  std::vector<long long> tin, ret;
+  long long time;
+public:
+  Graph(long long n) : nodeColour(n, WHITE), nodeEdges(n), tin(n), ret(n), time(0) {}
+
+  void AddEdge(long long x, long long y) {
+    nodeEdges[x].push_back(y);
+    nodeEdges[y].push_back(x);
+    edges.push_back({x, y});
+  }
+
+  void DoDFS() {
+    for (size_t i = 0; i < nodeColour.size(); ++i) {
+      if (nodeColour[i] == WHITE) {
+        DoDFSForNode(i);
+      }
+    }
+  }
+
+  std::vector<size_t> getBridges() {
+    std::vector<size_t> bridges;
+    for (size_t k = 0; k < edges.size(); k++) {
+      if (bridge.find(edges[k]) != bridge.end()) {
+        bridges.push_back(k + 1);
+      }
+    }
+    return bridges;
+  }
+
+private:
+  void DoDFSForNode(long long node, long long par = -1) {
+    tin[node] = time++;
+    ret[node] = time++;
+    nodeColour[node] = GREY;
+    for (size_t k = 0; k < nodeEdges[node].size(); k++) {
+      auto to = nodeEdges[node][k];
+      if (to == par) {
+        continue;
+      }
+      if (nodeColour[to] == GREY) {
+        ret[node] = std::min(ret[node], tin[to]);
+      } else {
+        DoDFSForNode(nodeEdges[node][k], node);
+        if (tin[node] < ret[to]) {
+          auto a = std::make_pair(node, to);
+          auto b = std::make_pair(to, node);
+          bridge.insert(b);
+          bridge.insert(a);
+        }
+      }
+      ret[node] = std::min(ret[node], ret[nodeEdges[node][k]]);
+    }
+  }
+};
+
+///////////////////////////////
+
+Graph readGraph(long long n, long long m) {
+  Graph graph(n);
+  unordered_map<long long, std::set<long long>> mp;
+
+  long long x, y;
+  for (auto k = 0; k < m; k++) {
+    cin >> x >> y;
+    if (x == y) {
+      continue;
+    }
+    if (mp[x].find(y) != mp[x].end()) {
+      continue;
+    }
+    if (mp[y].find(x) != mp[y].end()) {
+      continue;
+    }
+    mp[x].insert(y);
+    mp[y].insert(x);
+    x -= 1;
+    y -= 1;
+    graph.AddEdge(x, y);
+  }
+  return graph;
+}
+
+void printVec(const std::vector<size_t>& vec) {
+  std::cout << vec.size() << std::endl;
+  for (auto item : vec) {
+    std::cout << item << std::endl;
+  }
+}
+
+int main() {
+  long long n, m;
+  cin >> n;
+  cin >> m;
+
+  auto graph = readGraph(n, m);
+  graph.DoDFS();
+  auto bridges = graph.getBridges();
+  
+  printVec(bridges);
+  return 0;
+}
