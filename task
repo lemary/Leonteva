@@ -1,0 +1,99 @@
+#include <algorithm>
+#include <iostream>
+#include <stack>
+#include <vector>
+
+class Graph {
+  std::vector<std::vector<int>> gList_;
+  std::vector<std::vector<int>> transposeGraph_;
+
+ public:
+  Graph(size_t n): gList_(n), transposeGraph_(n) {}
+
+  void AddEdge(int from, int to) {
+    gList_[from].push_back(to);
+    transposeGraph_[to].push_back(from);
+  }
+
+  std::vector<int> FindConnectivityComponents() {
+    auto order = FindOrderByDFS();
+    auto components = FillComponentsByDFS(order);
+    return components;
+  }
+
+ private:
+  std::vector<int> FindOrderByDFS() {
+    std::vector<bool> visited(gList_.size(), false);
+    std::vector<int> order;
+    for (size_t i = 0; i < gList_.size(); i++) {
+      if (!visited[i]) {
+        FindOrderByDFSInNode(i, visited, order);
+      }
+    }
+    return order;
+  }
+
+  void FindOrderByDFSInNode(int vertex, std::vector<bool>& visited,
+  std::vector<int>& order) {
+    visited[vertex] = true;
+    for (int next : gList_[vertex]) {
+      if (!visited[next]) {
+        FindOrderByDFSInNode(next, visited, order);
+      }
+    }
+    order.push_back(vertex);
+  }
+  
+  std::vector<int> FillComponentsByDFS(const std::vector<int>& order) {
+    std::vector<bool> visited(gList_.size(), false);
+    std::vector<int> components(gList_.size());
+    int current_component = 1;
+
+    for (int i = static_cast<int>(gList_.size()) - 1; i >= 0; i--) {
+      int vertex = order[i];
+      if (!visited[vertex]) {
+        FillComponentsByDFSInNode(vertex, current_component, visited, components);
+        current_component++;
+      }
+    }
+    return components;
+  }
+
+  void FillComponentsByDFSInNode(int vertex, int current_component, 
+  std::vector<bool>& visited, std::vector<int>& components) {
+    visited[vertex] = true;
+    components[vertex] = current_component;
+    for (auto next : transposeGraph_[vertex]) {
+      if (!visited[next]) {
+        FillComponentsByDFSInNode(next, current_component, visited, components);
+      }
+    }
+  }
+};
+
+Graph ReadGraph(size_t n, size_t m) {
+  Graph g(n);
+  for (int i = 0; i < m; i++) {
+    int from, to;
+    std::cin >> from >> to;
+    g.AddEdge(from - 1, to - 1);
+  }
+  return g;
+}
+
+void PrintComponents(const std::vector<int>& components) {
+  std::cout << *std::max_element(components.begin(), components.end()) << std::endl;
+  for (auto c : components) {
+    std::cout << c << " ";
+  }
+  std::cout << std::endl;
+}
+
+int main() {
+  size_t n, m;
+  std::cin >> n >> m;
+  auto g = ReadGraph(n, m);
+  auto components = g.FindConnectivityComponents();
+  PrintComponents(components);
+  return 0;
+}
