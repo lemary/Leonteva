@@ -3,83 +3,97 @@
 #include <stack>
 #include <vector>
 
-class Solver {
-  int n_;
-  std::vector<std::vector<int>> graph_;
+class Graph {
+  std::vector<std::vector<int>> gList_;
   std::vector<std::vector<int>> transposeGraph_;
-  std::vector<bool> visited_;
-  std::vector<int> component_;
-  std::vector<int> order_;
 
  public:
-  Solver(int n)
-      : n_(n), graph_(n), transposeGraph_(n), visited_(n), component_(n) {}
+  Graph(size_t n): gList_(n), transposeGraph_(n) {}
 
   void AddEdge(int from, int to) {
-    graph_[from].push_back(to);
+    gList_[from].push_back(to);
     transposeGraph_[to].push_back(from);
   }
 
-  void Solve() {
-    for (int i = 0; i < n_; i++) {
-      if (!visited_[i]) {
-        DFS(i, graph_, order_);
-      }
-    }
-
-    std::fill(visited_.begin(), visited_.end(), false);
-    int current_component = 0;
-
-    for (int i = n_ - 1; i >= 0; i--) {
-      int vertex = order_[i];
-      if (!visited_[vertex]) {
-        DFS(vertex, transposeGraph_, current_component);
-        current_component++;
-      }
-    }
-
-    std::cout << current_component << std::endl;
-
-    for (int i = 0; i < n_; i++) {
-      std::cout << component_[i] + 1 << " ";
-    }
-
-    std::cout << std::endl;
+  std::vector<int> FindConnectivityComponents() {
+    auto order = FindOrderByDFS();
+    auto components = FillComponentsByDFS(order);
+    return components;
   }
 
  private:
-  void DFS(int vertex, const std::vector<std::vector<int>>& g,
-           std::vector<int>& order) {
-    visited_[vertex] = true;
-    for (int next : g[vertex]) {
-      if (!visited_[next]) {
-        DFS(next, g, order);
+  std::vector<int> FindOrderByDFS() {
+    std::vector<bool> visited(gList_.size(), false);
+    std::vector<int> order;
+    for (size_t i = 0; i < gList_.size(); i++) {
+      if (!visited[i]) {
+        FindOrderByDFSInNode(i, visited, order);
+      }
+    }
+    return order;
+  }
+
+  void FindOrderByDFSInNode(int vertex, std::vector<bool>& visited,
+  std::vector<int>& order) {
+    visited[vertex] = true;
+    for (int next : gList_[vertex]) {
+      if (!visited[next]) {
+        FindOrderByDFSInNode(next, visited, order);
       }
     }
     order.push_back(vertex);
   }
+  
+  std::vector<int> FillComponentsByDFS(const std::vector<int>& order) {
+    std::vector<bool> visited(gList_.size(), false);
+    std::vector<int> components(gList_.size());
+    int current_component = 1;
 
-  void DFS(int vertex, const std::vector<std::vector<int>>& g,
-           int current_component) {
-    visited_[vertex] = true;
-    component_[vertex] = current_component;
-    for (int next : g[vertex]) {
-      if (!visited_[next]) {
-        DFS(next, g, current_component);
+    for (int i = static_cast<int>(gList_.size()) - 1; i >= 0; i--) {
+      int vertex = order[i];
+      if (!visited[vertex]) {
+        FillComponentsByDFSInNode(vertex, current_component, visited, components);
+        current_component++;
+      }
+    }
+    return components;
+  }
+
+  void FillComponentsByDFSInNode(int vertex, int current_component, 
+  std::vector<bool>& visited, std::vector<int>& components) {
+    visited[vertex] = true;
+    components[vertex] = current_component;
+    for (auto next : transposeGraph_[vertex]) {
+      if (!visited[next]) {
+        FillComponentsByDFSInNode(next, current_component, visited, components);
       }
     }
   }
 };
 
-int main() {
-  int n, m;
-  std::cin >> n >> m;
-  Solver solver(n);
+Graph ReadGraph(size_t n, size_t m) {
+  Graph g(n);
   for (int i = 0; i < m; i++) {
     int from, to;
     std::cin >> from >> to;
-    solver.AddEdge(from - 1, to - 1);
+    g.AddEdge(from - 1, to - 1);
   }
-  solver.Solve();
+  return g;
+}
+
+void PrintComponents(const std::vector<int>& components) {
+  std::cout << *std::max_element(components.begin(), components.end()) << std::endl;
+  for (auto c : components) {
+    std::cout << c << " ";
+  }
+  std::cout << std::endl;
+}
+
+int main() {
+  size_t n, m;
+  std::cin >> n >> m;
+  auto g = ReadGraph(n, m);
+  auto components = g.FindConnectivityComponents();
+  PrintComponents(components);
   return 0;
 }
