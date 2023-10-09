@@ -2,84 +2,79 @@
 #include <vector>
 #include <algorithm>
 
-class Task {
-public:
+struct Task {
     int resources;
     int reward;
 
     Task(int resources = 0, int reward = 0) : resources(resources), reward(reward) {}
 };
 
-class Solver {
-private:
-    std::vector<Task> tasks;
-    int maxResources;
-    std::vector<std::vector<int>> dp;
+std::vector<std::vector<int>> DynamicCalculation(const std::vector<Task>& tasks, size_t maxResources) {
+    std::vector<std::vector<int>> dp(tasks.size() + 1, std::vector<int>(maxResources + 1, 0));
 
-public:
-    Solver(const std::vector<Task>& tasks, int maxResources) 
-        : tasks(tasks), maxResources(maxResources) {
-        dp.resize(tasks.size() + 1, std::vector<int>(maxResources + 1, 0));
-    }
-
-    void solve() {
-        for (size_t i = 1; i <= tasks.size(); i++) {
-            for (int j = 0; j <= maxResources; j++) {
-                dp[i][j] = dp[i-1][j];
-                if (j >= tasks[i-1].resources) {
-                    dp[i][j] = std::max(dp[i][j], dp[i-1][j-tasks[i-1].resources] + tasks[i-1].reward);
-                }
+    for (size_t i = 1; i <= tasks.size(); i++) {
+        for (int j = 0; j <= static_cast<int>(maxResources); j++) {
+            dp[i][j] = dp[i-1][j];
+            if (j >= tasks[i-1].resources) {
+                auto newReward = dp[i-1][j-tasks[i-1].resources] + tasks[i-1].reward;
+                dp[i][j] = std::max(dp[i][j], newReward);
             }
         }
     }
 
-    std::vector<int> reconstructSolution() {
-        std::vector<int> chosenTasks;
-        int i = tasks.size();
-        int remainingResources = maxResources;
+    return dp;
+}
 
-        while (i > 0) {
-            if (remainingResources >= tasks[i-1].resources && 
-                dp[i][remainingResources] == dp[i-1][remainingResources-tasks[i-1].resources] + tasks[i-1].reward) {
-                chosenTasks.push_back(i-1);
-                remainingResources -= tasks[i-1].resources;
-            }
-            i--;
+std::vector<int> GetChoosenTasks(const std::vector<Task>& tasks, 
+const std::vector<std::vector<int>>& dp, size_t maxResources) {
+    std::vector<int> chosenTasks;
+    int i = tasks.size();
+    int remainingResources = maxResources;
+
+    while (i != 0) {
+        if (remainingResources >= tasks[i-1].resources && 
+            dp[i][remainingResources] == dp[i-1][remainingResources-tasks[i-1].resources] + tasks[i-1].reward) {
+            chosenTasks.push_back(i-1);
+            remainingResources -= tasks[i-1].resources;
         }
-        std::reverse(chosenTasks.begin(), chosenTasks.end());
-
-        return chosenTasks;
+        --i;
     }
-};
+    std::reverse(chosenTasks.begin(), chosenTasks.end());
 
-std::vector<Task> readInput(int& maxResources) {
-    int n;
-    std::cin >> n >> maxResources;
+    return chosenTasks;
+}
 
+std::vector<int> KnapsackIndices(const std::vector<Task>& tasks, size_t maxResources) {
+    auto dp = DynamicCalculation(tasks, maxResources);
+    return GetChoosenTasks(tasks, dp, maxResources);
+}
+
+std::vector<Task> ReadTasks(size_t n) {
     std::vector<Task> tasks(n);
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         std::cin >> tasks[i].resources;
     }
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         std::cin >> tasks[i].reward;
     }
     return tasks;
 }
 
-void printOutput(const std::vector<int>& chosenTasks) {
-    for (int idx : chosenTasks) {
+void printIndices(const std::vector<int>& indices) {
+    for (auto idx : indices) {
         std::cout << idx + 1 << " ";
     }
     std::cout << std::endl;
 }
 
 int main() {
-    int maxResources;
-    auto tasks = readInput(maxResources);
+    size_t n;
+    size_t maxResources;
+    std::cin >> n >> maxResources;
+    auto tasks = ReadTasks(n);
 
-    Solver solver(tasks, maxResources);
-    solver.solve();
+    auto indices = KnapsackIndices(tasks, maxResources);
+    printIndices(indices);
 
-    printOutput(solver.reconstructSolution());
     return 0;
 }
