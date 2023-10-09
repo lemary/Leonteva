@@ -1,0 +1,80 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+struct Task {
+    int resources;
+    int reward;
+
+    Task(int resources = 0, int reward = 0) : resources(resources), reward(reward) {}
+};
+
+std::vector<std::vector<int>> DynamicCalculation(const std::vector<Task>& tasks, size_t maxResources) {
+    std::vector<std::vector<int>> dp(tasks.size() + 1, std::vector<int>(maxResources + 1, 0));
+
+    for (size_t i = 1; i <= tasks.size(); i++) {
+        for (int j = 0; j <= static_cast<int>(maxResources); j++) {
+            dp[i][j] = dp[i-1][j];
+            if (j >= tasks[i-1].resources) {
+                auto newReward = dp[i-1][j-tasks[i-1].resources] + tasks[i-1].reward;
+                dp[i][j] = std::max(dp[i][j], newReward);
+            }
+        }
+    }
+
+    return dp;
+}
+
+std::vector<int> GetChoosenTasks(const std::vector<Task>& tasks, 
+const std::vector<std::vector<int>>& dp, size_t maxResources) {
+    std::vector<int> chosenTasks;
+    int i = tasks.size();
+    int remainingResources = maxResources;
+
+    while (i != 0) {
+        if (remainingResources >= tasks[i-1].resources && 
+            dp[i][remainingResources] == dp[i-1][remainingResources-tasks[i-1].resources] + tasks[i-1].reward) {
+            chosenTasks.push_back(i-1);
+            remainingResources -= tasks[i-1].resources;
+        }
+        --i;
+    }
+    std::reverse(chosenTasks.begin(), chosenTasks.end());
+
+    return chosenTasks;
+}
+
+std::vector<int> KnapsackIndices(const std::vector<Task>& tasks, size_t maxResources) {
+    auto dp = DynamicCalculation(tasks, maxResources);
+    return GetChoosenTasks(tasks, dp, maxResources);
+}
+
+std::vector<Task> ReadTasks(size_t n) {
+    std::vector<Task> tasks(n);
+    for (size_t i = 0; i < n; i++) {
+        std::cin >> tasks[i].resources;
+    }
+    for (size_t i = 0; i < n; i++) {
+        std::cin >> tasks[i].reward;
+    }
+    return tasks;
+}
+
+void printIndices(const std::vector<int>& indices) {
+    for (auto idx : indices) {
+        std::cout << idx + 1 << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    size_t n;
+    size_t maxResources;
+    std::cin >> n >> maxResources;
+    auto tasks = ReadTasks(n);
+
+    auto indices = KnapsackIndices(tasks, maxResources);
+    printIndices(indices);
+
+    return 0;
+}
