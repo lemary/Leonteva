@@ -1,230 +1,222 @@
 #include <iostream>
-
 #include <vector>
-
 #include <algorithm>
+#include <queue>
 
-#include <cstring>
-
-const int64_t NSize = 2005;
-const int64_t MSize = 20005;
 const int64_t kInf = 1e10;
-const long double kEps = 1e-7;
+const long double kEps = 1e-9;
 
 struct Edge {
-  int64_t x;
-  int64_t y;
+    int64_t src, dst, backID;
+    long double flow;
 };
 
-std::vector < Edge > edges;
-std::vector < uint8_t > vis, cut;
-std::vector < long double > f;
-std::vector < int64_t > vtx;
-int64_t ne[MSize], tot;
-int64_t S, T, now, N, M;
-int64_t d[NSize], L[NSize], q[NSize], pre[NSize];
-long double Mincut;
+class Network {
+    int64_t N, M;
+    int64_t vertex, S, T;
+    std::vector<Edge> edges;
+    std::vector<int64_t> backs;
+public:
+    Network(int64_t N, int64_t M): 
+    N(N), M(M), vertex(N + M + 2), S(vertex - 2), T(vertex - 1), backs(vertex, -1) {}
 
-void Update(size_t u, size_t v, long double fl) {
-  ++tot;
-  f[tot] = fl;
-  vtx[tot] = v;
-  ne[tot] = L[u];
-  L[u] = tot;
-  ++tot;
-  f[tot] = 0;
-  vtx[tot] = u;
-  ne[tot] = L[v];
-  L[v] = tot;
-}
-
-long double MinFlow() {
-  long double fl = kInf;
-  for (int64_t i = T; i != S; i = vtx[pre[i] ^ 1]) {
-    fl = std::min(fl, f[pre[i]]);
-  }
-  return fl;
-}
-
-void UpdateMinFlow(long double flow) {
-  for (size_t i = T; i != S; i = vtx[pre[i] ^ 1]) {
-    f[pre[i] ^ 1] += flow;
-    f[pre[i]] -= flow;
-    if (f[pre[i]] < kEps) {
-      now = vtx[pre[i] ^ 1];
+    int64_t GetS() {
+        return S;
     }
-  }
-}
 
-inline void Flow() {
-  long double flow = MinFlow();
-  Mincut += flow;
-  UpdateMinFlow(flow);
-}
-
-void Dinic(size_t u) {
-  if (T == u) {
-    Flow();
-    return;
-  }
-  int64_t p = L[u];
-  while (p != 0) {
-    if (f[p] > kEps && 1 + d[u] == d[vtx[p]]) {
-      pre[vtx[p]] = p;
-      Dinic(vtx[p]);
-      if (d[now] < d[u]) {
-        return;
-      }
-      now = T;
+    int64_t GetT() {
+        return T;
     }
-    p = ne[p];
-  }
-  d[u] = -1;
-}
 
-bool ExtendCalc(int64_t & t, int64_t & u) {
-  int64_t p = L[u];
-  while (p != 0) {
-    if (kEps < f[p] && (1 << 30) == d[vtx[p]]) {
-      d[vtx[p]] = 1 + d[u];
-      if (T == vtx[p]) {
-        return true;
-      }
-      ++t;
-      q[t] = vtx[p];
+    void AddEdge(int64_t u, int64_t v) {
+        AppendEdge(u, v);
+        AppendEdge(v, u);
     }
-    p = ne[p];
-  }
-  return false;
-}
 
-bool Extend() {
-  q[1] = S;
-  int64_t h = 1;
-  int64_t t = 1;
-  for (size_t i = 0; i < NSize; ++i) {
-    d[i] = (i == S ? 0 : 1 << 30);
-  }
-  while (h <= t) {
-    if (ExtendCalc(t, q[h])) {
-      return true;
+    long double FindCapWithBinSearch() {
+        long double left = 0., right = M;
+        while (right - left > kEps) {
+            long double mid = (right + left) / 2.;
+            (MinCut(mid) < M ? left : right) = mid;
+        }
+        return left;
     }
-    ++h;
-  }
-  return false;
-}
 
-bool MinCutCalc() {
-  Mincut = 0;
-  while (Extend()) {
-    Dinic(S);
-  }
-  return Mincut < M;
-}
-
-bool BinSearchEl(long double g) {
-  tot = 1;
-  memset(L, 0, sizeof(L));
-  for (size_t i = 0; i < N; ++i) {
-    Update(S, i + 1, g);
-  }
-  for (size_t i = 0; i < M; ++i) {
-    Update(edges[i].x, N + i + 1, kInf);
-    Update(edges[i].y, N + i + 1, kInf);
-    Update(N + i + 1, T, 1);
-  }
-  return MinCutCalc();
-}
-
-void FindCutCalc(int64_t u, int64_t & t) {
-  int64_t p = L[u];
-  while (p != 0) {
-    if (kEps < f[p] && vis[vtx[p]] == 0) {
-      ++t;
-      q[t] = vtx[p];
-      vis[vtx[p]] = 1;
+    std::vector<int64_t> FindCutWithCap(long double cap) {
+        MinCut(cap);
+        std::vector<bool> used(vertex, false);
+        std::queue<int64_t> qu;
+        qu.push(S);
+        used[S] = true;
+        while (!qu.empty()) {
+            int64_t from = qu.front();
+            qu.pop();
+            int64_t p = backs[from];
+            while (p != -1) {
+                auto &edge = edges[p];
+                auto to = edge.dst;
+                if (edge.flow > kEps && used[to] == false) {
+                    qu.push(to);
+                    used[to] = true;
+                }
+                p = edge.backID;
+            }
+        }
+        std::vector<int64_t> ans;
+        for (size_t from = 0; from < vertex; ++from) {
+            int64_t p = backs[from];
+            while (p != -1) {
+                auto to = edges[p].dst;
+                if ((p % 2 == 0) && (used[from] != used[to]) && (to < N)) {
+                    ans.push_back(to);
+                }
+                p = edges[p].backID;
+            }
+        }
+        std::sort(ans.begin(), ans.end());
+        return ans;
     }
-    p = ne[p];
-  }
-}
 
-void FindCutSecond() {
-  int64_t p;
-  for (size_t u = 1; u <= T; ++u) {
-    p = L[u];
-    while (p != 0) {
-      if (p % 2 == 0 && vis[u] != vis[vtx[p]]) {
-        cut[p] = 1;
-      }
-      p = ne[p];
+private:
+    void AppendEdge(int64_t u, int64_t v) {
+        Edge edge{u, v, backs[u], 0};
+        backs[u] = edges.size();
+        edges.push_back(edge);
+    }    
+
+    void UpdateWithNativCap(long double cap) {
+        for (size_t i = 0; i < edges.size(); ++i) {
+            auto &edge = edges[i];
+            if (i & 1 == 1) {
+                edge.flow = 0;
+            } else if (edge.src == S) {
+                edge.flow = cap;
+            } else if (edge.dst == T) {
+                edge.flow = 1;
+            } else {
+                edge.flow = kInf;
+            }
+        }
     }
-  }
-}
 
-void FindCut() {
-  q[1] = S;
-  vis[S] = 1;
-  int64_t h = 1;
-  int64_t u = q[h];
-  int64_t t = 1;
-  while (t >= h) {
-    FindCutCalc(u, t);
-    ++h;
-    u = q[h];
-  }
-  FindCutSecond();
-}
 
-void BinSearch(size_t Time) {
-  long double l = 0.;
-  long double r = M;
-  long double mid;
-  for (size_t i = 0; i < Time; ++i) {
-    mid = (l + r) / 2.;
-    (BinSearchEl(mid) ? l : r) = mid;
-  }
-  BinSearchEl(l);
-}
-
-void PrintAns(const std::vector < size_t > & ans) {
-  std::cout << ans.size() << std::endl;
-  for (auto it: ans) {
-    std::cout << it << std::endl;
-  }
-}
-
-std::vector < size_t > GetAns() {
-  int64_t p = L[S];
-  std::vector < size_t > ans;
-  while (p != 0) {
-    if (cut[p] != 0) {
-      ans.push_back(vtx[p]);
+    bool Extend(std::vector<int64_t> &dinic) {
+        dinic = std::vector<int64_t>(vertex, kInf);
+        std::queue<int64_t> qu;
+        qu.push(S);
+        dinic[S] = 0;
+        while (!qu.empty()) {
+            int64_t from = qu.front();
+            qu.pop();
+            int64_t p = backs[from];
+            while (p != -1) {
+                auto &edge = edges[p];
+                auto to = edge.dst;
+                if (edge.flow > kEps && dinic[to] == kInf) {
+                    dinic[to] = dinic[from] + 1;
+                    if (to == T) {
+                        return true;
+                    }
+                    qu.push(to);
+                }
+                p = edge.backID;
+            }
+        }
+        return false;
     }
-    p = ne[p];
-  }
-  std::reverse(ans.begin(), ans.end());
-  return ans;
+
+    void MinFlowInBranch(int64_t &minVert, long double &minCut, std::vector<int64_t> &pre) {
+        long double flow = kInf;
+        int64_t node = T;
+        while (node != S) {
+            auto edgeID = pre[node];
+            flow = std::min(flow, edges[edgeID].flow);
+            node = edges[edgeID].src;
+        }
+        node = T;
+        while (node != S) {
+            auto edgeID = pre[node];
+            edges[edgeID].flow -= flow;
+            if (edges[edgeID].flow < kEps) {
+                minVert = edges[edgeID].src;
+            }
+            edges[edgeID ^ 1].flow += flow;
+            node = edges[edgeID].src;
+        }
+        minCut += flow;
+    }
+
+    void Dinic(int64_t node, int64_t &minVert, std::vector<int64_t> &dinic, 
+    std::vector<int64_t> &pre, long double &minCut) {
+        if (node == T) {
+            MinFlowInBranch(minVert, minCut, pre);
+            return;
+        }
+        int64_t p = backs[node];
+        while (p != -1) {
+            auto &edge = edges[p];
+            auto to = edge.dst;
+            if (edge.flow > kEps && dinic[to] == dinic[node] + 1) {
+                pre[to] = p;
+                Dinic(to, minVert, dinic, pre, minCut);
+                if (dinic[minVert] < dinic[node]) {
+                    return;
+                }
+                minVert = T;
+            }
+            p = edge.backID;
+        }
+        dinic[node] = -1;
+    }
+
+    long double MinCut(long double cap) {
+        UpdateWithNativCap(cap);
+        long double minCut = 0.;
+
+        std::vector<int64_t> dinic, pre(vertex);
+        while (Extend(dinic)) {
+            int64_t minVert = -1;
+            Dinic(S, minVert, dinic, pre, minCut);
+        }
+        return minCut;
+    }
+
+};
+
+
+Network ReadNetwork(int64_t N, int64_t M) {
+    Network network(N, M);
+    for (int64_t i = 0; i < N; ++i) {
+        network.AddEdge(network.GetS(), i);
+    }
+    int64_t u, v;
+    for (int64_t i = N; i < N + M; ++i) {
+        std::cin >> u >> v;
+        network.AddEdge(u - 1, i);
+        network.AddEdge(v - 1, i);
+        network.AddEdge(i, network.GetT());
+    }
+    return network;
+}
+
+void PrintVec(const std::vector<int64_t> &vec) {
+    std::cout << vec.size() << std::endl;
+    for (auto item : vec) {
+        std::cout << item + 1 << " ";
+    }
+    std::cout << std::endl;
 }
 
 int main() {
-  std::cin >> N >> M;
-  if (M == 0 || N == 1) {
-    std::cout << 1 << std::endl;
-    std::cout << 1 << std::endl;
+    int64_t N, M;
+    std::cin >> N >> M;
+    if (M == 0 || N == 1) {
+        std::cout << "1\n1" << std::endl;
+        return 0;
+    }
+    auto network = ReadNetwork(N, M);
+    auto cap = network.FindCapWithBinSearch();
+    auto cut = network.FindCutWithCap(cap);
+    PrintVec(cut);
     return 0;
-  }
-  edges.resize(M + 1);
-  for (size_t i = 0; i < M; ++i) {
-    std::cin >> edges[i].x >> edges[i].y;
-  }
-  S = N + M + 1;
-  T = N + M + 2;
-  vis.resize(NSize);
-  cut.resize(MSize);
-  f.resize(MSize);
-  vtx.resize(MSize);
-  BinSearch(24);
-  FindCut();
-  PrintAns(GetAns());
-  return 0;
 }
