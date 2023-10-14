@@ -1,0 +1,222 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <queue>
+
+const int64_t kInf = 1e10;
+const long double kEps = 1e-9;
+
+struct Edge {
+    int64_t src, dst, backID;
+    long double flow;
+};
+
+class Network {
+    int64_t N, M;
+    int64_t vertex, S, T;
+    std::vector<Edge> edges;
+    std::vector<int64_t> backs;
+public:
+    Network(int64_t N, int64_t M): 
+    N(N), M(M), vertex(N + M + 2), S(vertex - 2), T(vertex - 1), backs(vertex, -1) {}
+
+    int64_t GetS() {
+        return S;
+    }
+
+    int64_t GetT() {
+        return T;
+    }
+
+    void AddEdge(int64_t u, int64_t v) {
+        AppendEdge(u, v);
+        AppendEdge(v, u);
+    }
+
+    long double FindCapWithBinSearch() {
+        long double left = 0., right = M;
+        while (right - left > kEps) {
+            long double mid = (right + left) / 2.;
+            (MinCut(mid) < M ? left : right) = mid;
+        }
+        return left;
+    }
+
+    std::vector<int64_t> FindCutWithCap(long double cap) {
+        MinCut(cap);
+        std::vector<bool> used(vertex, false);
+        std::queue<int64_t> qu;
+        qu.push(S);
+        used[S] = true;
+        while (!qu.empty()) {
+            int64_t from = qu.front();
+            qu.pop();
+            int64_t p = backs[from];
+            while (p != -1) {
+                auto &edge = edges[p];
+                auto to = edge.dst;
+                if (edge.flow > kEps && used[to] == false) {
+                    qu.push(to);
+                    used[to] = true;
+                }
+                p = edge.backID;
+            }
+        }
+        std::vector<int64_t> ans;
+        for (size_t from = 0; from < vertex; ++from) {
+            int64_t p = backs[from];
+            while (p != -1) {
+                auto to = edges[p].dst;
+                if ((p % 2 == 0) && (used[from] != used[to]) && (to < N)) {
+                    ans.push_back(to);
+                }
+                p = edges[p].backID;
+            }
+        }
+        std::sort(ans.begin(), ans.end());
+        return ans;
+    }
+
+private:
+    void AppendEdge(int64_t u, int64_t v) {
+        Edge edge{u, v, backs[u], 0};
+        backs[u] = edges.size();
+        edges.push_back(edge);
+    }    
+
+    void UpdateWithNativCap(long double cap) {
+        for (size_t i = 0; i < edges.size(); ++i) {
+            auto &edge = edges[i];
+            if (i & 1 == 1) {
+                edge.flow = 0;
+            } else if (edge.src == S) {
+                edge.flow = cap;
+            } else if (edge.dst == T) {
+                edge.flow = 1;
+            } else {
+                edge.flow = kInf;
+            }
+        }
+    }
+
+
+    bool Extend(std::vector<int64_t> &dinic) {
+        dinic = std::vector<int64_t>(vertex, kInf);
+        std::queue<int64_t> qu;
+        qu.push(S);
+        dinic[S] = 0;
+        while (!qu.empty()) {
+            int64_t from = qu.front();
+            qu.pop();
+            int64_t p = backs[from];
+            while (p != -1) {
+                auto &edge = edges[p];
+                auto to = edge.dst;
+                if (edge.flow > kEps && dinic[to] == kInf) {
+                    dinic[to] = dinic[from] + 1;
+                    if (to == T) {
+                        return true;
+                    }
+                    qu.push(to);
+                }
+                p = edge.backID;
+            }
+        }
+        return false;
+    }
+
+    void MinFlowInBranch(int64_t &minVert, long double &minCut, std::vector<int64_t> &pre) {
+        long double flow = kInf;
+        int64_t node = T;
+        while (node != S) {
+            auto edgeID = pre[node];
+            flow = std::min(flow, edges[edgeID].flow);
+            node = edges[edgeID].src;
+        }
+        node = T;
+        while (node != S) {
+            auto edgeID = pre[node];
+            edges[edgeID].flow -= flow;
+            if (edges[edgeID].flow < kEps) {
+                minVert = edges[edgeID].src;
+            }
+            edges[edgeID ^ 1].flow += flow;
+            node = edges[edgeID].src;
+        }
+        minCut += flow;
+    }
+
+    void Dinic(int64_t node, int64_t &minVert, std::vector<int64_t> &dinic, 
+    std::vector<int64_t> &pre, long double &minCut) {
+        if (node == T) {
+            MinFlowInBranch(minVert, minCut, pre);
+            return;
+        }
+        int64_t p = backs[node];
+        while (p != -1) {
+            auto &edge = edges[p];
+            auto to = edge.dst;
+            if (edge.flow > kEps && dinic[to] == dinic[node] + 1) {
+                pre[to] = p;
+                Dinic(to, minVert, dinic, pre, minCut);
+                if (dinic[minVert] < dinic[node]) {
+                    return;
+                }
+                minVert = T;
+            }
+            p = edge.backID;
+        }
+        dinic[node] = -1;
+    }
+
+    long double MinCut(long double cap) {
+        UpdateWithNativCap(cap);
+        long double minCut = 0.;
+
+        std::vector<int64_t> dinic, pre(vertex);
+        while (Extend(dinic)) {
+            int64_t minVert = -1;
+            Dinic(S, minVert, dinic, pre, minCut);
+        }
+        return minCut;
+    }
+
+};
+
+
+Network ReadNetwork(int64_t N, int64_t M) {
+    Network network(N, M);
+    for (int64_t i = 0; i < N; ++i) {
+        network.AddEdge(network.GetS(), i);
+    }
+    int64_t u, v;
+    for (int64_t i = N; i < N + M; ++i) {
+        std::cin >> u >> v;
+        network.AddEdge(u - 1, i);
+        network.AddEdge(v - 1, i);
+        network.AddEdge(i, network.GetT());
+    }
+    return network;
+}
+
+void PrintVec(const std::vector<int64_t> &vec) {
+    std::cout << vec.size() << std::endl;
+    for (auto item : vec) {
+        std::cout << item + 1 << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    int64_t N, M;
+    std::cin >> N >> M;
+    if (M == 0 || N == 1) {
+        std::cout << "1\n1" << std::endl;
+        return 0;
+    }
+    auto network = ReadNetwork(N, M);
+    auto cap = network.FindCapWithBinSearch();
+    auto cut = network.FindCutWithCap(cap);
+    PrintVec(cut);
+    return 0;
+}
