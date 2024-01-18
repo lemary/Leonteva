@@ -1,0 +1,86 @@
+#include <iostream>
+
+const int64_t kBits = 64;
+
+int64_t Binpow(int64_t base, int64_t pow, int64_t prime) {
+  base %= prime;
+  if (pow == 0) {
+    return 1;
+  }
+  if ((pow & 1) == 0) {
+    return Binpow(base * base, pow >> 1, prime);
+  }
+  return (Binpow(base * base, pow >> 1, prime) * base) % prime;
+}
+
+bool IsQuadraticResidue(int64_t num, int64_t prime) {
+  num = num % prime;
+  int64_t exp = (prime - 1) / 2;
+  return Binpow(num, exp, prime) == 1;
+}
+
+int64_t TonelliShanks(int64_t num, int64_t prime) {
+  if (prime == 2) {
+    return num % prime;
+  }
+
+  if (!IsQuadraticResidue(num, prime)) {
+    return -1;
+  }
+
+  int64_t qq = prime - 1;
+  int64_t ss = 0;
+  while (qq % 2 == 0) {
+    ++ss;
+    qq /= 2;
+  }
+
+  int64_t zz = 2;
+  while (IsQuadraticResidue(zz, prime)) {
+    ++zz;
+  }
+
+  int64_t mm = ss;
+  int64_t cc = Binpow(zz, qq, prime);
+  int64_t tt = Binpow(num, qq, prime);
+  int64_t rr = Binpow(num, (qq + 1) / 2, prime);
+
+  int64_t ii = 0;
+  int64_t pow = 1;
+  while (tt != 1) {
+    ii = 0;
+    int64_t temp = tt;
+    while (temp != 1 && ii < (mm - 1)) {
+      temp = Binpow(temp, 2, prime);
+      ++ii;
+    }
+
+    pow = 1;
+    uint hop = ((mm - ii - 1) % kBits + kBits) % kBits;
+    int64_t bp = Binpow(cc, pow << hop, prime);
+    mm = ii;
+    cc = (bp * bp) % prime;
+    tt = (tt * cc) % prime;
+    rr = (rr * bp) % prime;
+  }
+
+  return rr;
+}
+
+int main() {
+  int test;
+  std::cin >> test;
+
+  while ((test--) != 0) {
+    int64_t num;
+    int64_t prime;
+    std::cin >> num >> prime;
+    int64_t result = TonelliShanks(num, prime);
+    if (result == -1) {
+      std::cout << "IMPOSSIBLE" << std::endl;
+    } else {
+      std::cout << result << std::endl;
+    }
+  }
+  return 0;
+}
